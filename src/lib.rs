@@ -110,7 +110,9 @@
 #![recursion_limit = "1024"]
 
 #[cfg(all(feature = "tls-native-tls", feature = "tls-rustls"))]
-compile_error!("tls-native-tls and tls-rustls are mutually exclusive and cannot be enabled together");
+compile_error!(
+    "tls-native-tls and tls-rustls are mutually exclusive and cannot be enabled together"
+);
 
 use std::{fmt, future::Future, time::Duration};
 

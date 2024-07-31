@@ -1,4 +1,7 @@
-use std::{marker, sync::Arc};
+use std::{
+    marker::{self, PhantomData},
+    sync::Arc,
+};
 
 use crate::{
     errors::Result,
@@ -102,6 +105,16 @@ pub struct Rows<'a, K: ColumnType> {
     pub(crate) row: usize,
     pub(crate) block_ref: BlockRef<'a, K>,
     pub(crate) kind: marker::PhantomData<K>,
+}
+
+impl<'a, K: ColumnType> Rows<'a, K> {
+    pub fn new(block: Block<K>) -> Self {
+        Self {
+            row: 0,
+            block_ref: BlockRef::Owned(Arc::new(block)),
+            kind: PhantomData,
+        }
+    }
 }
 
 impl<'a, K: ColumnType> Iterator for Rows<'a, K> {

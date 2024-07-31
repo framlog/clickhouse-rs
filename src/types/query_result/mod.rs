@@ -3,15 +3,12 @@ use futures_util::{
     stream::{self, BoxStream, StreamExt},
     TryStreamExt,
 };
-use log::info;
-use std::{marker::PhantomData, sync::Arc};
 
 use crate::{
     errors::Result,
     try_opt,
     types::{
-        block::BlockRef, query_result::stream_blocks::BlockStream, Block, Cmd, Complex, Query, Row,
-        Rows, Simple,
+        query_result::stream_blocks::BlockStream, Block, Cmd, Complex, Query, Row, Rows, Simple,
     },
     with_timeout, ClientHandle,
 };
@@ -32,7 +29,7 @@ impl<'a> QueryResult<'a> {
         with_timeout(
             async {
                 let blocks = self
-                    .stream_blocks_(false)
+                    .stream_blocks()
                     .try_fold(Vec::new(), |mut blocks, block| {
                         if !block.is_empty() {
                             blocks.push(block);
@@ -77,22 +74,17 @@ impl<'a> QueryResult<'a> {
     /// # ret.unwrap()
     /// ```
     pub fn stream_blocks(self) -> BoxStream<'a, Result<Block>> {
-        self.stream_blocks_(true)
-    }
-
-    fn stream_blocks_(self, skip_first_block: bool) -> BoxStream<'a, Result<Block>> {
         let query = self.query.clone();
 
         self.client
             .wrap_stream::<'a, _>(move |c: &'a mut ClientHandle| {
-                info!("[send query] {}", query.get_sql());
                 c.pool.detach();
 
                 let context = c.context.clone();
 
                 let inner = c.get_inner()?.call(Cmd::SendQuery(query, context));
 
-                Ok(BlockStream::<'a>::new(c, inner, skip_first_block))
+                Ok(BlockStream::<'a>::new(c, inner))
             })
     }
 
@@ -102,19 +94,10 @@ impl<'a> QueryResult<'a> {
             self.stream_blocks()
                 .map(|block_ret| {
                     let result: BoxStream<'a, Result<Row<'static, Simple>>> = match block_ret {
-                        Ok(block) => {
-                            let block = Arc::new(block);
-                            let block_ref = BlockRef::Owned(block);
-
-                            Box::pin(
-                                stream::iter(Rows {
-                                    row: 0,
-                                    block_ref,
-                                    kind: PhantomData,
-                                })
+                        Ok(block) => Box::pin(
+                            stream::iter(Rows::new(block))
                                 .map(|row| -> Result<Row<'static, Simple>> { Ok(row) }),
-                            )
-                        }
+                        ),
                         Err(err) => Box::pin(stream::once(future::err(err))),
                     };
                     result
