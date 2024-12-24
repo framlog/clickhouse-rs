@@ -44,7 +44,11 @@ impl<'a> Drop for BlockStream<'a> {
                     self.client.inner = Some(transport);
                 }
             }
-            BlockStreamState::Finished => {}
+            BlockStreamState::Finished => {
+                if !self.client.pool.is_attached() {
+                    self.client.pool.attach();
+                }
+            }
             BlockStreamState::Error => {
                 // drop broken transport; don't return it to pool to prevent pool poisoning
             }
