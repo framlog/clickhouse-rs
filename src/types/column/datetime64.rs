@@ -137,8 +137,12 @@ pub(crate) fn to_datetime_opt(value: i64, precision: u32, tz: Tz) -> LocalResult
         0_i64
     };
 
-    let sec = nano / 1_000_000_000;
-    let nsec = nano - sec * 1_000_000_000;
+    let mut sec = nano / 1_000_000_000;
+    let mut nsec = nano - sec * 1_000_000_000;
+    if nsec < 0 {
+        sec -= 1;
+        nsec += 1_000_000_000;
+    }
 
     tz.timestamp_opt(sec, nsec as u32)
 }
