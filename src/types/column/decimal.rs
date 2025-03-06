@@ -52,6 +52,7 @@ impl DecimalColumnData {
         let type_name = match nobits {
             NoBits::N32 => "Int32",
             NoBits::N64 => "Int64",
+            NoBits::N128 => "Int128",
         };
         let inner =
             <dyn ColumnData>::load_data::<BoxColumnWrapper, _>(reader, type_name, size, tz)?;
@@ -68,7 +69,7 @@ impl DecimalColumnData {
 impl ColumnFrom for Vec<Decimal> {
     fn column_from<W: ColumnWrapper>(source: Self) -> W::Wrapper {
         let mut data = List::<i64>::with_capacity(source.len());
-        let mut precision = 18;
+        let mut precision = 38;
         let mut opt_scale = None;
         for s in source {
             precision = std::cmp::max(precision, s.precision);
@@ -100,7 +101,7 @@ impl ColumnFrom for Vec<Option<Decimal>> {
     fn column_from<W: ColumnWrapper>(source: Self) -> W::Wrapper {
         let mut nulls: Vec<u8> = Vec::with_capacity(source.len());
         let mut data = List::<i64>::with_capacity(source.len());
-        let mut precision = 18;
+        let mut precision = 38;
         let mut opt_scale = None;
         for os in source {
             if let Some(s) = os {
@@ -161,6 +162,10 @@ impl ColumnData for DecimalColumnData {
                     let internal: i64 = decimal.internal();
                     self.inner.push(internal.into())
                 }
+                NoBits::N128 => {
+                    let internal: i128 = decimal.internal();
+                    self.inner.push(internal.into());
+                }
             }
         } else {
             panic!("value should be decimal ({value:?})");
@@ -168,9 +173,10 @@ impl ColumnData for DecimalColumnData {
     }
 
     fn at(&self, index: usize) -> ValueRef {
-        let underlying: i64 = match self.nobits {
-            NoBits::N32 => i64::from(i32::from(self.inner.at(index))),
-            NoBits::N64 => i64::from(self.inner.at(index)),
+        let underlying: i128 = match self.nobits {
+            NoBits::N32 => i128::from(i32::from(self.inner.at(index))),
+            NoBits::N64 => i128::from(i64::from(self.inner.at(index))),
+            NoBits::N128 => i128::from(self.inner.at(index)),
         };
 
         ValueRef::Decimal(Decimal {
@@ -222,6 +228,10 @@ impl<K: ColumnType> ColumnData for DecimalAdapter<K> {
                     }
                     NoBits::N64 => {
                         let internal: i64 = decimal.internal();
+                        encoder.write(internal);
+                    }
+                    NoBits::N128 => {
+                        let internal: i128 = decimal.internal();
                         encoder.write(internal);
                     }
                 }
@@ -276,6 +286,9 @@ impl<K: ColumnType> ColumnData for NullableDecimalAdapter<K> {
                     encoder.write(underlying as i32);
                 }
                 NoBits::N64 => {
+                    encoder.write(underlying as i64);
+                }
+                NoBits::N128 => {
                     encoder.write(underlying);
                 }
             }

@@ -23,8 +23,8 @@ async_std = ["async-std"]
 tokio_io = ["tokio"]
 
 [dependencies]
-byteorder = "^1.4"
-chrono-tz = "^0.8"
+byteorder = "^1.5"
+chrono-tz = "^0.10"
 crossbeam = "^0.8"
 thiserror = "^1.0"
 futures-core = "^0.3"
@@ -39,6 +39,7 @@ combine = "^4.6"
 percent-encoding = "^2.3"
 either = "^1.6"
 cfg-if = "1.0.0"
+rust_decimal = "1.36.0"
 
 [dependencies.futures-util]
 version = "^0.3"

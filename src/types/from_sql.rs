@@ -212,7 +212,8 @@ from_sql_vec_impl! {
     NaiveDate: SqlType::Date => |r| Ok(r.into()),
     DateTime<Tz>: SqlType::DateTime(_) => |r| Ok(r.into()),
     Enum8: SqlType::Enum8(_) => |r| Ok(r.into()),
-    Enum16: SqlType::Enum16(_) => |r| Ok(r.into())
+    Enum16: SqlType::Enum16(_) => |r| Ok(r.into()),
+    Decimal: SqlType::Decimal(..) => |r| Decimal::from_sql(r)
 }
 
 impl<'a> FromSql<'a> for Vec<u8> {

@@ -182,6 +182,7 @@ impl dyn ColumnData {
                 let inner_type = match nobits {
                     NoBits::N32 => SqlType::Int32,
                     NoBits::N64 => SqlType::Int64,
+                    NoBits::N128 => SqlType::Int128,
                 };
 
                 W::wrap(DecimalColumnData {
@@ -382,6 +383,7 @@ fn parse_decimal(source: &str) -> Option<(u8, u8, NoBits)> {
             let precision = match bits {
                 NoBits::N32 => 9,
                 NoBits::N64 => 18,
+                NoBits::N128 => 38,
             };
             Some((precision, scale, bits))
         }
@@ -476,7 +478,7 @@ fn parse_date_time(source: &str) -> Option<Option<String>> {
         ));
 
     match parser.parse(source) {
-        Ok((timezone, remain)) if remain.is_empty() => Some(timezone),
+        Ok((timezone, "")) => Some(timezone),
         _ => None,
     }
 }
@@ -511,7 +513,7 @@ fn parse_date_time64(source: &str) -> Option<(u32, Option<String>)> {
         .skip(token(')'));
 
     match parser.parse(source) {
-        Ok((pair, remain)) if remain.is_empty() => Some(pair),
+        Ok((pair, "")) => Some(pair),
         _ => None,
     }
 }
@@ -561,6 +563,7 @@ mod test {
         assert_eq!(parse_decimal("Decimal(0)"), None);
         assert_eq!(parse_decimal("Decimal(1, 2, 3)"), None);
         assert_eq!(parse_decimal("Decimal64(9)"), Some((18, 9, NoBits::N64)));
+        assert_eq!(parse_decimal("Decimal128(4)"), Some((38, 4, NoBits::N128)));
     }
 
     #[test]

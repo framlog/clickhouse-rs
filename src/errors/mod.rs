@@ -191,6 +191,12 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
+impl From<chrono_tz::ParseError> for Error {
+    fn from(err: chrono_tz::ParseError) -> Self {
+        Error::Other(err.to_string().into())
+    }
+}
+
 #[cfg(feature = "tokio_io")]
 impl From<Elapsed> for Error {
     fn from(_err: Elapsed) -> Self {
