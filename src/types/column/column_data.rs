@@ -22,7 +22,7 @@ pub trait ColumnData {
     fn save(&self, encoder: &mut Encoder, start: usize, end: usize);
     fn len(&self) -> usize;
     fn push(&mut self, value: Value);
-    fn at(&self, index: usize) -> ValueRef;
+    fn at(&self, index: usize) -> ValueRef<'_>;
 
     fn clone_instance(&self) -> BoxColumnData;
 
@@ -50,6 +50,7 @@ pub trait ColumnData {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) trait ColumnDataExt {
     fn append<T: Into<Value>>(&mut self, value: T);
 }

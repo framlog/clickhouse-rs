@@ -249,10 +249,7 @@ fn parse_fixed_string(source: &str) -> Option<usize> {
     }
 
     let inner_size = &source[12..source.len() - 1];
-    match inner_size.parse::<usize>() {
-        Err(_) => None,
-        Ok(value) => Some(value),
-    }
+    inner_size.parse::<usize>().ok()
 }
 
 fn parse_nullable_type(source: &str) -> Option<&str> {
@@ -335,6 +332,9 @@ fn parse_decimal(source: &str) -> Option<(u8, u8, NoBits)> {
                 }
                 b"Decimal64" => {
                     nobits = Some(NoBits::N64);
+                }
+                b"Decimal128" => {
+                    nobits = Some(NoBits::N128);
                 }
                 _ => return None,
             }
@@ -556,7 +556,8 @@ mod test {
     fn test_parse_decimal() {
         assert_eq!(parse_decimal("Decimal(9, 4)"), Some((9, 4, NoBits::N32)));
         assert_eq!(parse_decimal("Decimal(10, 4)"), Some((10, 4, NoBits::N64)));
-        assert_eq!(parse_decimal("Decimal(20, 4)"), None);
+        assert_eq!(parse_decimal("Decimal(38, 8)"), Some((38, 8, NoBits::N128)));
+        assert_eq!(parse_decimal("Decimal(20, 4)"), Some((20, 4, NoBits::N128)));
         assert_eq!(parse_decimal("Decimal(2000, 4)"), None);
         assert_eq!(parse_decimal("Decimal(3, 4)"), None);
         assert_eq!(parse_decimal("Decimal(20, -4)"), None);

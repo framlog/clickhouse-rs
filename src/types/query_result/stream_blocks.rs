@@ -57,7 +57,7 @@ impl<'a> Drop for BlockStream<'a> {
 }
 
 impl<'a> BlockStream<'a> {
-    pub(crate) fn new(client: &mut ClientHandle, inner: PacketStream) -> BlockStream {
+    pub(crate) fn new(client: &mut ClientHandle, inner: PacketStream) -> BlockStream<'_> {
         BlockStream {
             client,
             inner,

@@ -176,7 +176,8 @@ impl PartialEq for Decimal {
 }
 
 fn decimal2str(decimal: &Decimal) -> String {
-    let mut r = format!("{}", decimal.underlying);
+    let is_negative = decimal.underlying < 0;
+    let mut r = format!("{}", decimal.underlying.abs());
     while r.len() < decimal.scale() {
         r.insert(0, '0');
     }
@@ -184,6 +185,9 @@ fn decimal2str(decimal: &Decimal) -> String {
     r.insert(pos, '.');
     if r.starts_with('.') {
         r.insert(0, '0');
+    }
+    if is_negative {
+        r.insert(0, '-');
     }
     r
 }

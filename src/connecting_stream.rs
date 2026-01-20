@@ -125,6 +125,7 @@ pub(crate) struct ConnectingStream {
     state: State,
 }
 
+#[cfg(feature = "tls-rustls")]
 #[derive(Debug)]
 struct DummyTlsVerifier;
 

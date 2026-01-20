@@ -172,7 +172,7 @@ impl ColumnData for DecimalColumnData {
         }
     }
 
-    fn at(&self, index: usize) -> ValueRef {
+    fn at(&self, index: usize) -> ValueRef<'_> {
         let underlying: i128 = match self.nobits {
             NoBits::N32 => i128::from(i32::from(self.inner.at(index))),
             NoBits::N64 => i128::from(i64::from(self.inner.at(index))),
@@ -249,7 +249,7 @@ impl<K: ColumnType> ColumnData for DecimalAdapter<K> {
         unimplemented!()
     }
 
-    fn at(&self, index: usize) -> ValueRef {
+    fn at(&self, index: usize) -> ValueRef<'_> {
         if let ValueRef::Decimal(decimal) = self.column.at(index) {
             let mut d = decimal.set_scale(self.scale);
             d.precision = self.precision;
@@ -303,7 +303,7 @@ impl<K: ColumnType> ColumnData for NullableDecimalAdapter<K> {
         unimplemented!()
     }
 
-    fn at(&self, index: usize) -> ValueRef {
+    fn at(&self, index: usize) -> ValueRef<'_> {
         let value: Option<Decimal> = Option::from_sql(self.column.at(index)).unwrap();
         match value {
             None => ValueRef::Nullable(Either::Left(self.sql_type().into())),

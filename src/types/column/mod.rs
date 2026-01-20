@@ -201,7 +201,7 @@ impl<K: ColumnType> Column<K> {
     }
 
     #[inline(always)]
-    pub(crate) fn at(&self, index: usize) -> ValueRef {
+    pub(crate) fn at(&self, index: usize) -> ValueRef<'_> {
         self.data.at(index)
     }
 
